@@ -72,9 +72,9 @@ def parse_type(data_type, buffer, length=None, version=3):
             # Looks like if BOM is present text is already decoded
             if buffer.startswith(b"\xfe\xff") or buffer.startswith(b"\xff\xfe"):
                 buff = buffer[2:]
-                parsed = buff.decode("utf-8", errors='ignore')
+                parsed = buff.decode("utf-16", errors='ignore')
             else:
-                parsed = buffer.decode("utf-16", errors='ignore')
+                parsed = buffer.decode("utf-8", errors='ignore')
         else:
             parsed = buffer.decode('utf-8', errors='ignore')
     else:
