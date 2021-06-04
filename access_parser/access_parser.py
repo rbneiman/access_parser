@@ -357,17 +357,36 @@ class AccessTable(object):
                 rel_end = relative_record_metadata.var_len_count
             else:
                 rel_end = relative_offsets[i + 1]
+
+
+
             # Not sure why
-            if self.version > 3:
-                if rel_end > len(original_record):
-                    rel_end = rel_end & 0xff
-                if rel_start > len(original_record):
-                    rel_start = rel_start & 0xff
+            # if self.version > 3:
+            #     if rel_end > len(original_record):
+            #         rel_end = rel_end & 0xff
+            #     if rel_start > len(original_record):
+            #         rel_start = rel_start & 0xff
 
             # if rel_start and rel_end are the same there is no data in this slot
             if rel_start == rel_end:
                 self.parsed_table[col_name].append("")
                 continue
+
+            if len(relative_offsets) > i + 2 and rel_end > relative_offsets[i + 2]:
+                rel_end -= 256
+                relative_offsets[i + 1] = rel_end
+
+            if i > 0 and rel_start < relative_offsets[i - 1]:
+                rel_start += 512
+
+            if rel_end > len(original_record):
+                rel_end = rel_end & 0xff
+
+            if rel_start > len(original_record):
+                rel_start = rel_start & 0xff
+
+            if rel_start > rel_end and i + 1 == len(relative_offsets):
+                rel_end += 256
 
             relative_obj_data = original_record[rel_start + jump_table_addition: rel_end + jump_table_addition]
             if column.type == TYPE_MEMO:
@@ -377,7 +396,8 @@ class AccessTable(object):
                     logging.warning("Failed to parse memo field. Using data as bytes")
                     parsed_type = relative_obj_data
             else:
-                parsed_type = parse_type(column.type, relative_obj_data, len(relative_obj_data), version=self.version)
+                parsed_type = parse_type(column.type, relative_obj_data, column.length, version=self.version)
+            dummy = 1
             self.parsed_table[col_name].append(parsed_type)
 
     def _get_table_columns(self):
