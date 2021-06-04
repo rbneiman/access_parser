@@ -86,7 +86,6 @@ def parse_type(data_type, buffer, length=None, version=3):
             parsed = buffer.decode('utf-8', errors='ignore')
     else:
         logging.debug(f"parse_type - unsupported data type: {data_type}")
-    dummy = 1
     return parsed
 
 
