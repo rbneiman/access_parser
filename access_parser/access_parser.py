@@ -172,6 +172,9 @@ class AccessTable(object):
         data page to rows(records) and parse each record.
         :return defaultdict(list) with the parsed data -- table[column][row_index]
         """
+        for index in range(len(self.columns)):
+            if index in self.columns:
+                self.parsed_table[self.columns[index].col_name_str] = []
         if not self.table.linked_pages:
             return self.create_empty_table()
         for data_chunk in self.table.linked_pages:
@@ -266,12 +269,17 @@ class AccessTable(object):
 
             parsed_type = null_table[column.column_id]
         else:
+
             if column.fixed_offset > len(original_record):
                 logging.error(f"Column offset is bigger than the length of the record {column.fixed_offset}")
                 return
             record = original_record[column.fixed_offset:]
             parsed_type = parse_type(column.type, record, version=self.version)
-        self.parsed_table[column_name].append(parsed_type)
+
+        if not null_table[column.column_id] and column.type != TYPE_BOOLEAN:
+            self.parsed_table[column_name].append("")
+        else:
+            self.parsed_table[column_name].append(parsed_type)
 
     def _parse_dynamic_length_records_metadata(self, reverse_record, original_record, null_table_length):
         """
